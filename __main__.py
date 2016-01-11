@@ -80,13 +80,15 @@ def main(start_year, start_week, weeks_per_page, pages, cell_size, paper_size):
 			def write(line, *args):
 				print(line.format(*args), file = file)
 			
+			def label(font, size, alignment, text, position_expression, *args):
+				write('label("{{\\setmainfont{{{}}} {}}}", {}, {}, fontsize({}pt));', font, text, position_expression.format(*args), alignment, size)
+			
+			write('texpreamble("\\usepackage{{fontspec}}");')
 			write('int weeks_per_page = {};', weeks_per_page)
 			write('pair paper_size = ({}mm, {}mm);', *paper_size)
 			write('pair cell_size = ({}mm, {}mm);', *cell_size)
-			write('pen row_header_font = font({!r}, {}mm);', 'OfficinaSansITC-Medium', 8)
-			write('pen cell_font = font({!r}, {}mm);', 'OfficinaSansITC-Book', 4)
 			write('pen cell_border_pen = {}pt + black;', 1)
-			write('real header_width = {}mm;', 15)
+			write('real header_width = {}mm;', 12)
 			write('pair raster(real x, real y) {{ return (paper_size - (cell_size.x * 7 - header_width, cell_size.y * weeks_per_page)) / 2 + (cell_size.x * x, cell_size.y * y); }}')
 			
 			for i in range(1, weeks_per_page):
@@ -94,6 +96,17 @@ def main(start_year, start_week, weeks_per_page, pages, cell_size, paper_size):
 			
 			for i in range(1, 7):
 				write('draw(raster({0}, 0) -- raster({0}, weeks_per_page), cell_border_pen);', i)
+			
+			for i in range(weeks_per_page):
+				week = first_week + datetime.timedelta(weeks = i)
+				_, week_number, _ = week.isocalendar()
+				
+				label('OfficinaSansITC-Medium', 24, 'W', '{}'.format(week_number), 'raster(0, {} + 1 / 2)', weeks_per_page - i - 1)
+				
+				for j in range(7):
+					day = week + datetime.timedelta(j)
+					
+					label('OfficinaSansITC-Book', 12, 'SE', '{}'.format(day), 'raster({}, {})', j, weeks_per_page - i)
 			
 			write('draw(box(raster(0, 0), raster(7, weeks_per_page)), cell_border_pen);')
 			
@@ -103,6 +116,8 @@ def main(start_year, start_week, weeks_per_page, pages, cell_size, paper_size):
 		command('asy', '-f', 'pdf', '-tex', 'xelatex', os.path.relpath(asy_path, temp_dir), cwd = temp_dir)
 		
 		os.rename(pdf_path, out_path)
+		
+		log('Written {}.', out_path)
 
 
 try:
