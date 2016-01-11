@@ -58,12 +58,21 @@ def datetime_from_iso_week(year, week):
 	return ret
 
 
+@contextlib.contextmanager
+def temporary_directory(debug = False):
+	if debug:
+		yield tempfile.mkdtemp(dir = '.')
+	else:
+		with tempfile.TemporaryDirectory() as temp_dir:
+			yield temp_dir
+
+
 def main(start_year, start_week, weeks_per_page, pages, cell_size, paper_size):
 	out_file_name = '{:04}-W{:02}'.format(start_year, start_week)
 	out_path = out_file_name + '.pdf'
 	first_week = datetime_from_iso_week(start_year, start_week)
 	
-	with tempfile.TemporaryDirectory() as temp_dir:
+	with temporary_directory() as temp_dir:
 		asy_path = os.path.join(temp_dir, out_file_name + '.asy')
 		pdf_path = os.path.join(temp_dir, out_file_name + '.pdf')
 		
