@@ -35,8 +35,9 @@ def parse_args():
 	parser.add_argument('start_week', type = int, nargs = '?')
 	parser.add_argument('--weeks-per-page', type = int, default = 10)
 	parser.add_argument('--pages', type = int, default = 1)
-	parser.add_argument('--cell-size', type = size, default = size('39:18'))
+	parser.add_argument('--cell-size', type = size, default = size('40:20'))
 	parser.add_argument('--paper-size', type = size, default = size('297:210'))
+	parser.add_argument('--debug', action = 'store_true')
 	
 	args = parser.parse_args()
 	
@@ -70,13 +71,13 @@ def temporary_directory(debug = False):
 month_names = 'Januar Februar März April Mäi Juni Juli Auguscht Septämber Oktober Novämber Dezämber'.split()
 
 
-def main(start_year, start_week, weeks_per_page, pages, cell_size, paper_size):
+def main(start_year, start_week, weeks_per_page, pages, cell_size, paper_size, debug):
 	for page in range(pages):
 		first_week = datetime_from_iso_week(start_year, start_week) + datetime.timedelta(weeks = page * weeks_per_page)
 		first_week_year, first_week_day, _ = first_week.isocalendar()
 		out_path = '{:04}-W{:02}.pdf'.format(first_week_year, first_week_day)
 		
-		with temporary_directory() as temp_dir:
+		with temporary_directory(debug) as temp_dir:
 			asy_path = os.path.join(temp_dir, 'a.asy')
 			pdf_path = os.path.join(temp_dir, 'a.pdf')
 			
@@ -92,7 +93,7 @@ def main(start_year, start_week, weeks_per_page, pages, cell_size, paper_size):
 				write('pair paper_size = ({}mm, {}mm);', *paper_size)
 				write('pair cell_size = ({}mm, {}mm);', *cell_size)
 				write('pen cell_border_pen = {}pt + black;', 1)
-				write('real header_width = {}mm;', 5)
+				write('real header_width = {}mm;', 10)
 				write('pair raster(real x, real y) {{ return (paper_size - (cell_size.x * 7 - header_width, cell_size.y * weeks_per_page)) / 2 + (cell_size.x * x, cell_size.y * y); }}')
 				
 				for i in range(1, weeks_per_page):
