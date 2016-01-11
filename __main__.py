@@ -67,12 +67,15 @@ def temporary_directory(debug = False):
 			yield temp_dir
 
 
+month_names = 'Januar Februar März April Mäi Juni Juli Auguscht Septämber Oktober Novämber Dezämber'.split()
+
+
 def main(start_year, start_week, weeks_per_page, pages, cell_size, paper_size):
 	out_file_name = '{:04}-W{:02}'.format(start_year, start_week)
 	out_path = out_file_name + '.pdf'
 	first_week = datetime_from_iso_week(start_year, start_week)
 	
-	with temporary_directory() as temp_dir:
+	with temporary_directory(True) as temp_dir:
 		asy_path = os.path.join(temp_dir, out_file_name + '.asy')
 		pdf_path = os.path.join(temp_dir, out_file_name + '.pdf')
 		
@@ -88,7 +91,7 @@ def main(start_year, start_week, weeks_per_page, pages, cell_size, paper_size):
 			write('pair paper_size = ({}mm, {}mm);', *paper_size)
 			write('pair cell_size = ({}mm, {}mm);', *cell_size)
 			write('pen cell_border_pen = {}pt + black;', 1)
-			write('real header_width = {}mm;', 12)
+			write('real header_width = {}mm;', 5)
 			write('pair raster(real x, real y) {{ return (paper_size - (cell_size.x * 7 - header_width, cell_size.y * weeks_per_page)) / 2 + (cell_size.x * x, cell_size.y * y); }}')
 			
 			for i in range(1, weeks_per_page):
@@ -105,8 +108,16 @@ def main(start_year, start_week, weeks_per_page, pages, cell_size, paper_size):
 				
 				for j in range(7):
 					day = week + datetime.timedelta(j)
+					month_name = month_names[day.month]
 					
-					label('OfficinaSansITC-Book', 12, 'SE', '{}'.format(day), 'raster({}, {})', j, weeks_per_page - i)
+					if i == 0 and j == 0 or day.day == 1 and day.month == 1:
+						cell_label = '{}. {} {}'.format(day.day, month_name, day.year)
+					elif day.day == 1:
+						cell_label = '{}. {}'.format(day.day, month_name)
+					else:
+						cell_label = '{}'.format(day.day)
+					
+					label('OfficinaSansITC-Book', 12, 'SE', cell_label, 'raster({}, {})', j, weeks_per_page - i)
 			
 			write('draw(box(raster(0, 0), raster(7, weeks_per_page)), cell_border_pen);')
 			
