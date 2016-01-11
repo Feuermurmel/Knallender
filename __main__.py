@@ -10,8 +10,8 @@ def log(message, *args):
 	print('{}: {}'.format(sys.argv[0], message.format(*args)))
 
 
-def command(*args):
-	process = subprocess.Popen(args)
+def command(*args, cwd = None):
+	process = subprocess.Popen(args, cwd = cwd)
 	process.wait()
 	
 	if process.returncode:
@@ -91,7 +91,7 @@ def main(start_year, start_week, weeks_per_page, pages, cell_size, paper_size):
 			write('clip(box((0, 0), paper_size));')
 			write('fixedscaling((0, 0), paper_size);')
 		
-		command('asy', '-f', 'pdf', '-tex', 'xelatex', '-o', pdf_path, asy_path)
+		command('asy', '-f', 'pdf', '-tex', 'xelatex', os.path.relpath(asy_path, temp_dir), cwd = temp_dir)
 		
 		os.rename(pdf_path, out_path)
 
