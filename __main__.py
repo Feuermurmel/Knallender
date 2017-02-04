@@ -174,14 +174,20 @@ def main(start_year, start_week, weeks_per_page, pages, cell_size, paper_size, d
                 write('clip(box((0, 0), paper_size));')
                 write('fixedscaling((0, 0), paper_size);')
 
-            command(
-                'asy',
-                '-f',
-                'pdf',
-                '-tex',
-                'xelatex',
-                os.path.relpath(asy_path, temp_dir),
-                cwd=temp_dir)
+            def iter_args():
+                yield 'asy'
+
+                if debug:
+                    yield '-d'
+                    yield '-vv'
+
+                yield '-f'
+                yield 'pdf'
+                yield '-tex'
+                yield 'xelatex'
+                yield os.path.relpath(asy_path, temp_dir)
+
+            command(*iter_args(), cwd=temp_dir)
             
             os.rename(pdf_path, out_path)
             
